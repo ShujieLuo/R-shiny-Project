@@ -1,0 +1,78 @@
+library(shiny)
+library(openxlsx)
+ui = fluidPage(
+ titlePanel("Media Study on Time Spent Watching Videos per Week"),
+ hr(),
+ numericInput("AgeInput","Age",value=20,min=18,max=24,step=1,width='10%'),
+ radioButtons("vtype",
+ "Video Type:",
+ c("Health" = "H",
+ "Sports" = "S",
+ "Technology" = "TX",
+ "Travel" = "TR")),
+ sliderInput("QInput","Quantile",value=0.5,min=0,max=1,step=0.05),
+ actionButton("agbutton",label="By Age"),
+ actionButton("vibutton",label="By Video Type"),
+ actionButton("avbutton",label="By Age and Video Type"),
+ hr(),
+ verbatimTextOutput("meantx",placeholder = TRUE),
+ verbatimTextOutput("sdtx",placeholder = TRUE),
+ verbatimTextOutput("qutx",placeholder = TRUE),
+ plotOutput("hist"),
+ hr()
+)
+server = function(input, output) {
+ VideoData = reactiveValues(d=NULL)
+ DataType = reactiveValues(d=NULL)
+ QuantType = reactiveValues(d=NULL)
+ observeEvent(input$agbutton,{
+ x = read.xlsx('c:/manuel/VideoTimeAge.xlsx')
+ VideoData$d=x$Time.Watching[x$Age == input$AgeInput]
+ DataType$d="By Age"
+ QuantType$d = input$QInput
+ })
+ observeEvent(input$vibutton,{
+ x = read.xlsx('c:/manuel/VideoTimeAge.xlsx')
+ v = switch(input$vtype,
+ H = "Health",
+ S = "Sports",
+ TX = "Technology",
+ TR = "Travel",
+ "Health")
+ VideoData$d=x$Time.Watching[x$Video.Type == v]
+ DataType$d="By Video Type" 
+OPIM 5504 Adaptive Business Intelligence
+ })
+ observeEvent(input$avbutton,{
+ x = read.xlsx('c:/manuel/VideoTimeAge.xlsx')
+ v = switch(input$vtype,
+ H = "Health",
+ S = "Sports",
+ TX = "Technology",
+ TR = "Travel",
+ "Health")
+ VideoData$d=x$Time.Watching[(x$Age == input$AgeInput) & (x$Video.Type ==
+v)]
+ DataType$d="By Age and Video Type"
+ })
+ output$meantx=renderText({
+ if (is.null(VideoData$d)) return()
+ paste("The mean is",format(mean(VideoData$d),digits=2,nsmall=2))
+ })
+ output$sdtx=renderText({
+ if (is.null(VideoData$d)) return()
+ paste("The standard deviation is", format(sd(VideoData$d), digits=2,
+nsmall=2))
+ })
+ output$qutx=renderText({
+ if (is.null(VideoData$d)) return()
+ paste0("The ",QuantType$d*100,"% quantile is ",
+format(quantile(VideoData$d,probs=QuantType$d), digits=2, nsmall=2))
+ })
+ output$hist=renderPlot({
+ if (is.null(VideoData$d)) return()
+ hist(VideoData$d, main=paste("Histogram ",DataType$d), xlab="Time in
+Minutes")
+ })
+}
+shinyApp(ui, server) 
