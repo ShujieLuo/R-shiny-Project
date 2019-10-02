@@ -1,0 +1,29 @@
+library("shiny")
+ui = fluidPage("Student's Performance",
+               sliderInput(inputId = "grade",label="Select Grade",min=0,max=100,value=0,step=1),
+               checkboxInput(inputId = "magnet",label="From magnet school?"),
+               textOutput("TypeOfSchool"),
+               textOutput("RealTestErrors"),
+               textOutput(outputId = "Performance")
+)
+server = function(input, output) {
+  x = reactive({if (input$magnet) {input$grade*1.5} else {input$grade}})
+  output$TypeOfSchool = renderText({
+    if (input$magnet)
+    { paste0("The type of school is magnet")}
+    else 
+    {paste0("The type of school is standard")}
+  })
+  output$RealTestErrors = renderText({paste0("The revised number of test errors is ",x())})
+  output$Performance = renderText(
+    if (10>x()){
+      paste0("Excellent")}
+    else if (27>x()){
+      paste0("Good")}
+    else if (37>x()){
+      paste0("Average")}
+    else {
+      paste0("Poor")}
+  )
+}
+shinyApp(ui,server)
