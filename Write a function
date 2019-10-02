@@ -1,0 +1,12 @@
+ui = fluidPage("The values of the function",
+               numericInput("n",label = "Input n", value = 0, step = 1),
+               numericInput("m",label = "Input m", value = 0, step = 1),
+               plotOutput("FunctionChart")
+)
+server=function(input,output){
+  x = reactive(if (input$m>0) {seq(0,input$m/100,0.01)} else {seq(0,input$m/100,-0.01)} )
+  output$FunctionChart=renderPlot(
+    plot(x(),exp((-1)*input$n*x()),xlab = "x",ylab = "The value of the function")
+  )
+}
+shinyApp(ui,server)
