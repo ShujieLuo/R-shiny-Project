@@ -32,8 +32,8 @@ server = function(input, output) {
     }
   })
   output$ProfitHist = renderPlot({hist(Y())})
-  output$LLProfit = renderText({paste("Lower limit profit is approx.",mean(Y())-qnorm(z+(1-z)/2)*sd(Y())/sqrt(input$samplesize))})
-  output$ULProfit = renderText({paste("Upper limit profit is approx.",mean(Y())+qnorm(z+(1-z)/2)*sd(Y())/sqrt(input$samplesize))})
+  output$LLProfit = renderText({paste("Lower limit profit is approx.",mean(Y())-(qnorm(input$z+(1-input$z)/2))*sd(Y())/sqrt(input$samplesize))})
+  output$ULProfit = renderText({paste("Upper limit profit is approx.",mean(Y())+(qnorm(input$z+(1-input$z)/2))*sd(Y())/sqrt(input$samplesize))})
   output$LossProb = renderText({paste("Loss probability is approx.",sum(Y() < 0)/input$samplesize)})
 }
 shinyApp(ui, server)
