@@ -1,0 +1,41 @@
+rprofit = function(m,p){
+  C = 6 + rbinom(m, size = 4, prob = p)
+  P = runif(m, min = 22, max = 27)
+  V = rnorm(m, mean = 550, sd = 125)
+  Y = (P - C)*V - 9000
+  return (Y)
+}
+rprofit2 = function(m){
+  C = sample(vc,size = m,replace = TRUE)
+  P = runif(m, min = 22, max = 27)
+  V = rnorm(m, mean = 550, sd = 125)
+  Y = (P - C)*V - 9000
+  return (Y)
+}
+ui = fluidPage(
+  sliderInput("samplesize","Sample Size (m)", min = 100, max = 10000, value = 100, step = 100),
+  sliderInput("p","Enter value of p",min = 0, max = 1, value = 0.5, step = 0.01),
+  sliderInput("z","Enter confident level: ", min = 0.9, max = 0.99, value = 0.95, step = 0.01),
+  selectInput("distributor","select distributor",list("Distributor 1" = "d1","Distributor 2"="d2")),
+  plotOutput("ProfitHist"),
+  h3("95% Confidence Interval: "),
+  textOutput("LLProfit"),
+  textOutput("ULProfit"),
+  textOutput("LossProb")
+)
+server = function(input, output) {
+  Y = reactive({if(input$distributor == "d1"){
+    rprofit(input$samplesize,input$p)
+  }
+    else {
+      rprofit2(input$samplesize)
+    }
+  })
+  output$ProfitHist = renderPlot({hist(Y())})
+  output$LLProfit = renderText({paste("Lower limit profit is approx.",mean(Y())-qnorm(z+(1-z)/2)*sd(Y())/sqrt(input$samplesize))})
+  output$ULProfit = renderText({paste("Upper limit profit is approx.",mean(Y())+qnorm(z+(1-z)/2)*sd(Y())/sqrt(input$samplesize))})
+  output$LossProb = renderText({paste("Loss probability is approx.",sum(Y() < 0)/input$samplesize)})
+}
+shinyApp(ui, server)
+
+
