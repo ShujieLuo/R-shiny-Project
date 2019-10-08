@@ -1,0 +1,23 @@
+rInsuranceCost = function(m,w){
+T = sample(c("No claim","Small claim","Large claim"), size=m, replace=TRUE, prob=c(0.5,0.3,0.2))
+U = runif(m,min=0,max=w)
+V = runif(m,min=w,max=20000)
+Y = ifelse(T=="No claim",0,ifelse(T=="Small claim",U,V))
+return(Y)
+}
+ui = fluidPage(
+sliderInput("samplesize",label="Select Sample Size (m)", min=100, max=1000, value=100),
+sliderInput("breakpoint",label="Select Claim Breakpoint (w)", min=1000, max=10000, value=2000, step=100),
+hr(),
+plotOutput("samplehist"),
+hr(),
+verbatimTextOutput("confidenceinterval")
+)
+server = function(input, output) {
+x = reactive({rInsuranceCost(input$samplesize,input$breakpoint)}) output$samplehist = renderPlot({hist(x(), main="Insurance Cost Histogram", xlab="$")})
+output$confidenceinterval = renderText({
+lowlim = mean(x()) - 1.96*sd(x())/sqrt(input$samplesize)
+upplim = mean(x()) + 1.96*sd(x())/sqrt(input$samplesize) paste0("A 95% confidence interval is [", round(lowlim,digits=2), ", ", round(upplim,2), "].")
+})
+}
+shinyApp(ui, server)
