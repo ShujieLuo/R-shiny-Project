@@ -1,0 +1,27 @@
+rBakeryProfit = function(m,b){
+   N = rpois(m,lambda=8)
+   L = numeric(m)
+   for (k in 1:m){
+L[k]=0
+for (i in 1:N[k]){ L[k]=L[k]+rbinom(1,size=4,prob=0.25)+1
+}
+}
+Y = ifelse(L>b,0.57*b-1.25*(L-b),0.57*L-0.23*(b-L)) return(Y)
+}
+ui = fluidPage( sliderInput("samplesize",label="Select
+Sample Size
+(m)",
+min=100, max=1000, value=100), numericInput("batchsize",label="Select Batch Size (b)", min=1,
+max=25, value=20),
+  hr(),
+  plotOutput("samplehist"),
+  hr(),
+  verbatimTextOutput("confidenceinterval") )
+server = function(input, output) {
+x = reactive({rBakeryProfit(input$samplesize,input$batchsize)}) output$samplehist = renderPlot({hist(x(), main="Net Profit
+     Histogram", xlab="$")})
+       output$confidenceinterval = renderText({
+lowlim = mean(x()) - 1.645*sd(x())/sqrt(input$samplesize) upplim = mean(x()) + 1.645*sd(x())/sqrt(input$samplesize) paste0("A 90% confidence interval is [",
+round(lowlim,digits=2), ", ", round(upplim,2), "].") })
+     }
+     shinyApp(ui, server)
