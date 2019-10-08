@@ -1,0 +1,27 @@
+rcost = function(m,q,w){
+  D = rnorm(m, mean=15*(94-q/2), sd=200)
+  cost = q*w + ifelse(D>w, 120*(D-w), (120-q)*(w-D))
+  return(cost)
+}
+ui = fluidPage(
+sliderInput("samplesize",label="Select Sample Size (m)", min=100,
+max=1000, value=100),
+sliderInput("price",label="Select Guaranteed Price (q)", min=60,
+max=120, value=80),
+numericInput("reservations",label="Select Number of Reservations
+(w)", min=100, max=1000, value=800, step=100), hr(),
+  plotOutput("samplehist"),
+  verbatimTextOutput("confidenceint")
+)
+
+server = function(input, output) { x=
+reactive({rcost(input$samplesize,input$price,input$reservations)}) output$samplehist = renderPlot({hist(x(), main="Total Reservation
+Cost Histogram", xlab="$")})
+  output$confidenceint = renderText({
+mean.cost = mean(x())
+sd.cost = sd(x())
+lb = mean.cost - qnorm(0.95)*sd.cost/sqrt(input$samplesize)
+ub = mean.cost + qnorm(0.95)*sd.cost/sqrt(input$samplesize) paste0("90% level confidence interval for true average cost is
+[",round(lb,digits=2),", ",round(ub,digits=2),"].") })
+}
+shinyApp(ui, server)
