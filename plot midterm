@@ -1,0 +1,41 @@
+rAssemblyProfit = function(C,N){
+  X1= sample(c(1,2,3,4,5,6), size=1000,replace=TRUE, prob=c(0.15,0.15,0.2,0.3,0.1,0.1))
+  X2= sample(c(1,2,3,4,5,6), size=1000,replace=TRUE, prob=c(0.15,0.15,0.2,0.3,0.1,0.1))
+  X3= sample(c(1,2,3,4,5,6), size=1000,replace=TRUE, prob=c(0.15,0.15,0.2,0.3,0.1,0.1))
+  F =  as.numeric(X1)+as.numeric(X2)+as.numeric(X3)
+  Y = ifelse(as.numeric(F)<=12,N-F*10,N-12*10-C)
+  
+  return(Y)
+}
+
+ui = fluidPage(
+  sliderInput("ValueN",label="Select value N", min=200,
+              max=600, value=200,step=5),
+  radioButtons("ValueC","Select value C",c(50,100,150)),
+  hr(),
+  plotOutput("samplehist"),
+  hr(),
+  verbatimTextOutput("confidenceinterval1"),
+  hr(),
+  verbatimTextOutput("confidenceinterval2")
+)
+server = function(input, output) {
+  
+  x = reactive({rAssemblyProfit(switch (as.character(input$ValueC),"50"=50,"100"=100,"150"=150),input$ValueN)})
+  
+  output$samplehist = renderPlot({hist(x(), main="Profit per appliance", xlab="$")})
+  output$confidenceinterval1 = renderText({
+    lowlim = mean(x()) - qnorm(0.995)*sd(x())/1000
+    upplim = mean(x()) + qnorm(0.995)*sd(x())/1000
+    paste0("A 99% confidence interval for the true average profit per appliance is [", round(lowlim,digits=2),
+           ", ", round(upplim,2), "].")})
+  output$confidenceinterval2 = renderText({
+    probb=sum(x() > 0)/1000
+    LL = probb - 1.645*sqrt(probb*(1-probb)/1000)
+    UL = probb + 1.645*sqrt(probb*(1-probb)/1000)
+    
+      paste0("A 90% confidence interval for making a profit is [", round(LL,digits=2),
+             ", ", round(UL,2), "].")
+  })
+}
+shinyApp(ui, server)
