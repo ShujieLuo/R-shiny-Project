@@ -1,0 +1,84 @@
+s = sample(c("Freshman","Sophomore","Junior","Senior"),size=2000,replace = TRUE,prob=c(0.4,0.3,0.15,0.15))
+s
+prop.table(table(s))
+T1 = rnorm(1000, mean=5, sd = 1)
+T1
+T2 = runif(1000, min = 3, max = 7)
+T2
+Y1 = T1 + T2
+mean(Y1)
+sd(Y1)
+hist(Y1)
+Y2 = pmax(T1,T2)
+Y2
+mean(Y2)
+sd(Y2)
+hist(Y2)
+#Probability that the sequential project will take more than 5 days?
+sum(Y1>5)/1000
+#Probability that the sequential project will take more than 8 days?
+sum(Y1>8)/1000
+#Probability that the parallel project will take more than 5 days?
+sum(Y2>5)/1000
+S = rexp(1000, rate=1/60)
+C = rexp(1000, rate=1/90)
+X = rbinom(1000, size = 1, prob = 0.6)
+Y = ifelse(X == 1, S + 40, C + 40)
+mean(Y)
+median(Y)
+hist(Y)
+#Probability that processing one box will take more than one hour?
+sum(Y>60)/1000
+S = rpois(1000, lambda = 40)
+Y = ifelse(S <= 30, 20 + 1.5*S, 50 + 1.5*S)
+mean(Y)
+median(Y)
+hist(Y)
+C = 6 + rbinom(1000, size = 4, prob = 0.5)
+P = runif(1000, min = 22, max = 27)
+V = rnorm(1000, mean = 550, sd = 125)
+Y = (P - C)*V - 9000
+mean(Y)
+hist(Y)
+#Probability of losing money in a given month
+sum(Y < 0)/1000
+rprofit = function(m,p){
+C = 6 + rbinom(m, size = 4, prob = p)
+P = runif(m, min = 22, max = 27)
+V = rnorm(m, mean = 550, sd = 125)
+Y = (P - C)*V - 9000
+return{Y}
+}
+rprofit = function(m,p){
+C = 6 + rbinom(m, size = 4, prob = p)
+P = runif(m, min = 22, max = 27)
+V = rnorm(m, mean = 550, sd = 125)
+Y = (P - C)*V - 9000
+return(Y)
+}
+Y1 = rprofit(1000,0.5)
+hist(Y1)
+Y2 = rprofit(1000,0.1)
+hist(Y2)
+mean(Y1)
+mean(Y2)
+Y3 = rprofit(100000,p=0.5)
+hist(Y3)
+mean(Y3)
+Y4 = rprofit(100000,p=0.1)
+mean(Y4)
+library(shiny)
+ui = fluidPage(
+sliderInput("samplesize","Sample Size (m)", min = 100, max = 10000, value = 100, step = 100),
+sliderInput("p","Enter value of p",min = 0, max = 1, value = 0.5, step = 0.01),
+plotOutput("ProfitHist"),
+textOutput("MeanProfit"),
+textOutput("LossProb")
+)
+server = function(input, output) {
+Y = reactive({rprofit(input$samplesize,input$p)})
+output$ProfitHist = renderPlot({hist(Y())})
+output$MeanProfit = renderText({paste("Average Profit is approx.",mean(Y()))})
+output$LossProb = renderText({paste("Loss probability is approx.",sum(Y() < 0)/input$samplesize)})
+}
+shinyApp(ui, server)
