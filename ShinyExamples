@@ -1,0 +1,88 @@
+ui = fluidPage("Hello World")
+server = function(input,output){}
+shinyApp(ui, server)
+
+ui = fluidPage(titlePanel("Example 1"),
+               hr(),
+               textInput(inputId = "myname",label="Enter your name"),
+              "This is what you wrote",
+              verbatimTextOutput(outputId = "mytext")
+)
+server = function(input,output){
+  output$mytext = renderText({
+    paste0(input$myname,". It has ",nchar(input$myname)," characters")})
+}
+shinyApp(ui,server)
+
+ui = fluidPage("Slider Example",
+               sliderInput("samplesize",label="Select Sample Size",min=10,max=1000,value=100,step=10),
+               plotOutput("mychart"),
+               textOutput("SampleAverage")
+)
+
+server = function(input, output) {
+  output$mychart = renderPlot({hist(runif(input$samplesize,min=10,max=20),main="Uniform Sample",xlab="Random Values")})
+  output$SampleAverage = renderText({mean(runif(input$samplesize,min=10,max=20))})
+  }
+shinyApp(ui,server)
+
+ui = fluidPage("Slider Example",
+               sliderInput("samplesize",label="Select Sample Size",min=10,max=1000,value=100,step=10),
+               plotOutput("mychart"),
+               textOutput("SampleAverage")
+)
+
+server = function(input, output) {
+  x = reactive ({runif(input$samplesize,min=10,max=20)})
+  output$mychart = renderPlot({hist(x(),main="Uniform Sample",xlab="Random Values")})
+  output$SampleAverage = renderText({mean(x())})
+}
+shinyApp(ui,server)
+
+ui = fluidPage("Slider Example",
+               sliderInput("samplesize",label="Select Sample Size",min=10,max=1000,value=100,step=10),
+               plotOutput("mychart"),
+               textOutput("SampleAverage"),
+               checkboxInput("SampleMedian",label="Compute sample median?"),
+               textOutput("Median")
+)
+server = function(input, output) {
+  x = reactive ({runif(input$samplesize,min=10,max=20)})
+  output$mychart = renderPlot({hist(x(),main="Uniform Sample",xlab="Random Values")})
+  output$SampleAverage = renderText({mean(x())})
+  output$Median = renderText({
+    if (input$SampleMedian){
+      paste0("The sample median is ",median(x()))
+    }
+  })
+}
+shinyApp(ui,server)
+
+ui = fluidPage(
+  actionButton(inputId = "mybutton",label="OK")
+)
+server = function(input, output) {
+  observeEvent(input$mybutton,{print("Hello")})
+}
+shinyApp(ui, server)
+
+ui = fluidPage(
+  actionButton(inputId = "mybutton1",label="Normal"),
+  actionButton(inputId = "mybutton2",label="Uniform"),
+  hr(),
+  plotOutput("plot")
+)
+server = function(input, output) {
+  dd=reactiveValues(data=NULL)
+  observeEvent(input$mybutton1,{
+    dd$data = rnorm(100)
+  })
+  observeEvent(input$mybutton2,{
+    dd$data = runif(100)
+  })
+  output$plot=renderPlot({if(is.null(dd$data)) return()
+    hist(dd$data)
+  })
+}
+shinyApp(ui, server)
+
