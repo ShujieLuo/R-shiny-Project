@@ -1,0 +1,22 @@
+rprofit = function(m,p){
+  C = 6 + rbinom(m, size = 4, prob = p)
+  P = runif(m, min = 22, max = 27)
+  V = rnorm(m, mean = 550, sd = 125)
+  Y = (P - C)*V - 9000
+  return
+}
+
+ui = fluidPage(
+  sliderInput("samplesize","Sample Size (m)", min = 100, max = 10000, value = 100, step = 100),
+  sliderInput("p","Enter value of p",min = 0, max = 1, value = 0.5, step = 0.01),
+  plotOutput("ProfitHist"),
+  textOutput("MeanProfit"),
+  textOutput("LossProb")
+)
+server = function(input, output) {
+  Y = reactive({rprofit(input$samplesize,input$p)})
+  output$ProfitHist = renderPlot({hist(Y())})
+  output$MeanProfit = renderText({paste("Average Profit is approx.",mean(Y()))})
+  output$LossProb = renderText({paste("Loss probability is approx.",sum(Y() < 0)/input$samplesize)})
+}
+shinyApp(ui, server)
