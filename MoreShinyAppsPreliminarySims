@@ -1,0 +1,134 @@
+ui = fluidPage(
+  # *Input() functions,
+  # *Output() functions,
+  actionButton("LoadFile","LOAD"),
+  plotOutput("MyHistogram"),
+  textOutput("DisplayMean")
+)
+server = function(input, output) {
+  output$MyHistogram = renderPlot({
+    DF = read.xlsx('c:/OPIM5504/salary.xlsx')
+    hist(DF$Salary)
+  })
+  output$DisplayMean = renderText({
+    DF = read.xlsx('c:/OPIM5504/salary.xlsx')
+    paste0("The mean is ",mean(DF$Salary))
+  })
+}
+shinyApp(ui, server)
+
+ui = fluidPage(
+  # *Input() functions,
+  # *Output() functions,
+  actionButton("LoadFile","LOAD"),
+  plotOutput("MyHistogram"),
+  textOutput("DisplayMean")
+)
+server = function(input, output) {
+  MyObject = reactiveValues(DF = NULL)
+  observeEvent(input$LoadFile,{
+    MyObject$DF = read.xlsx('c:/OPIM5504/salary.xlsx')
+  })
+  output$MyHistogram = renderPlot({
+    hist(MyObject$DF$Salary)
+  })
+  output$DisplayMean = renderText({
+    paste0("The mean is ",mean(MyObject$DF$Salary))
+  })
+}
+shinyApp(ui, server)
+
+ui = fluidPage(
+  # *Input() functions,
+  # *Output() functions,
+  actionButton("LoadFile","LOAD"),
+  plotOutput("MyHistogram"),
+  textOutput("DisplayMean")
+)
+server = function(input, output) {
+  MyObject = reactiveValues(DF = NULL)
+  observeEvent(input$LoadFile,{
+    MyObject$DF = read.xlsx('c:/OPIM5504/salary.xlsx')
+  })
+  output$MyHistogram = renderPlot({
+    if (is.null(MyObject$DF)){return()}
+    hist(MyObject$DF$Salary)
+  })
+  output$DisplayMean = renderText({
+    if (is.null(MyObject$DF)){return("No Available Data")}
+    paste0("The mean is ",mean(MyObject$DF$Salary))
+  })
+}
+shinyApp(ui, server)
+
+ui = fluidPage(
+  checkboxGroupInput("mycheckgroup",label="Favorite Sodas",choices=list(
+    "Coke" = "Coke", "Diet Coke" = "Diet Coke", "Pepsi" = "Pepsi", "Diet Pepsi" = "Diet Pepsi"
+  )),
+  hr(),
+  "You have chosen:",
+  textOutput("mymessage1"),
+  "Number of chosen sodas:",
+  textOutput("mymessage2")
+)
+server = function(input, output) {
+  output$mymessage1=renderText({
+    paste0(input$mycheckgroup)
+  })
+  output$mymessage2=renderText({
+    length(input$mycheckgroup)
+  })
+}
+shinyApp(ui, server)
+
+ui = fluidPage(
+  radioButtons("dist",
+               "Select a Distribution:",
+               c("Normal" = "norm",
+                 "Uniform" = "unif",
+                 "Log-normal" = "lnorm",
+                 "Exponential" = "exp")),
+  plotOutput("distPlot")
+)
+server = function(input, output){
+  output$distPlot = renderPlot({
+    dist = switch(input$dist,
+                  norm = rnorm,
+                  unif = runif,
+                  lnorm = rlnorm,
+                  exp = rexp,
+                  rnorm)
+    hist(dist(500))
+  })
+}
+shinyApp(ui,server)
+}
+
+rbinom(1,size=10,prob=0.5)
+rbinom(1,size=10,prob=0.5)
+rbinom(1,size=10,prob=0.5)
+rbinom(1,size=10,prob=0.5)
+rbinom(1,size=10,prob=0.5)
+rbinom(1,size=10,prob=0.5)
+rbinom(1,size=10,prob=0.5)
+rbinom(1,size=10,prob=0.5)
+y = rbinom(1000.size=10,prob=0.5)
+y = rbinom(1000,size=10,prob=0.5)
+y
+hist(y)
+hist(y)
+mean(y)
+y = rbinom(1000,size=10,prob=0.9)
+hist(y)
+mean(y)
+X1 = sample(1000,c(1,2,3,4,5,6),prob = rep(1/6,6),replace=TRUE)
+X1 = sample(c(1,2,3,4,5,6),size=1000,prob = rep(1/6,6),replace=TRUE)
+X1
+X2 = sample(c(1,2,3,4,5,6),size=1000,prob = rep(1/6,6),replace=TRUE)
+Y = ifelse((X1+X2 == 7)|(X1+X2 == 11),1,-1)
+Y
+mean(Y)
+#Approximation to probability of winning
+sum(Y == 1)
+sum(Y == 1)/1000
+hist(Y)
