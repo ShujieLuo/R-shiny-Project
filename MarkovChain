@@ -1,0 +1,74 @@
+install.packages('markovchain')
+library(markovchain)
+Tran.Mat = matrix(c(0,1,0,0,0,0.75,0,0.25,0,0,0,0.75,0,0.25,0,0,0,0.75,0,0.25,0,0,0,1,0),nrow=5,byrow=TRUE)
+Tran.Mat
+Random.Walk = new("markovchain",transitionMatrix=Tran.Mat,states=c("0","1","2","3","4"),name="Random Walk")
+Random.Walk
+p = steadyStates(Random.Walk)
+p
+#In the long run, the mouse tends to stay with higher probability
+#in the cells toward the left
+barplot(p)
+plot(Random.Walk)
+plot(Random.Walk,edge.arrow.size=0.1)
+plot(Random.Walk,edge.arrow.size=0.01)
+#We want the transition probability from 1 to 2
+Random.Walk[1,2]
+Random.Walk["1","2"]
+M = Random.Walk^6
+M
+Random.Walk
+#Suppose we want to conditional distribution for state 2
+conditionalDistribution(Random.Walk,"2")
+Tran.Mat2 = matrix(c(0.1,0.2,0.5,0.2,0.8,0.2,0,0,0.3,0.5,0.2,0,0.1,0.2,0.5,0.2),nrow=4,byrow=TRUE)
+Tran.Mat2
+Inventory = new("markovchain",transitionMatrix=Tran.Mat2,states=c("0","1","2","3"),name="Inventory Level")
+Inventory
+plot(Inventory, edge.arrow.size=0.01)
+p = steadyStates(Inventory)
+p
+barplot(p)
+#Policy 1
+P1 = matrix(c(0.3,0.7,0.5,0.5),nrow = 2,byrow=TRUE)
+P1
+Policy1=new("markovchain",transitionMatrix=P1,states=c("A","B"))
+Policy1
+p = steadyStates(Policy1)
+p
+cost1 = c(30,0)
+#Expected cost per customer (in long run) for policy 1
+ex.cost1 = sum(cost1*p)
+ex.cost1
+#Policy 2
+P2 = matrix(c(0.5,0.5,0.25,0.75),nrow = 2,byrow=TRUE)
+P2
+Policy2=new("markovchain",transitionMatrix=P2,states=c("A","B"))
+Policy2
+p = steadyStates(Policy1)
+p
+p = steadyStates(Policy2)
+p
+cost2 = c(0,27)
+ex.cost2 = sum(cost2*p)
+ex.cost2
+ex.cost1
+#They should implemnt policy 1 because it has the lowest long-run expected cost/customer
+12.5/0.67
+# If the incentive for staying with B in policy 2 is changed to $18.66
+#Then we will be indifferent between the two policies.
+d = dbinom(0:8,size=10,prob=0.5)
+d
+d9 = d[9]+d[10]
+d10 = d[8]+d[9]+d[10]
+d = dbinom(0:10,size=10,prob=0.5)
+d9 = d[10]+d[11]
+d10 = d[9]+d[10]+d[11]
+M=matrix(c(rep(d,9),c(0,d[1:9],d9),c(0,0,d[1:8],d10)),nrow=11,byrow=TRUE)
+M
+Shuttle=new("markovchain",transitionMatrix=M,states=seq(0,10))
+Shuttle=new("markovchain",transitionMatrix=M,states=as.character(seq(0,10)))
+Shuttle
+p = steadyStates(Shuttle)
+barplot(p)
+p
+barplot(p)
