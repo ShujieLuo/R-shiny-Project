@@ -34,3 +34,16 @@ LL = mean(Y)-1.96*sd(Y)/sqrt(1000)
 UL = mean(Y)+1.96*sd(Y)/sqrt(1000)
 # a 95% confidence for the true mean is from LL to UL
 hist(Y)
+
+rPathMaxCost = function(){
+  x = character(11) # We want to simulate 10 days
+  x[1]= "0" # we always want to start with a new machine
+  Cost = c(0,1000,3000,6000) #Costs per state
+  names(Cost) = c("0","1","2","3") #Label the cost vector
+  z = 0
+  for (i in 2:11){
+    x[i] = sample(c("0","1","2","3"), size= 1, prob = Machine[x[i-1],])
+    z =max(z, Cost[x[i]])
+  }
+  return(z) # Returns the sum of the costs from visiting each of the 10 states
+}
