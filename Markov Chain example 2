@@ -45,5 +45,5 @@ rPathMaxCost = function(){
     x[i] = sample(c("0","1","2","3"), size= 1, prob = Machine[x[i-1],])
     z =max(z, Cost[x[i]])
   }
-  return(z) # Returns the sum of the costs from visiting each of the 10 states
+  return(z) # Returns the max of the costs from visiting each of the 10 states
 }
