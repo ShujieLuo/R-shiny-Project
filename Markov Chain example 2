@@ -47,3 +47,10 @@ rPathMaxCost = function(){
   }
   return(z) # Returns the max of the costs from visiting each of the 10 states
 }
+
+rPathMaxCost()
+
+Z = replicate(1000, rPathMaxCost())
+mean(Z)
+sum(Z<6000)/1000
+# The machine is not replaced during the 10 days with a probability of approx 8%
