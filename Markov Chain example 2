@@ -1,0 +1,36 @@
+# Class example Machine
+M = matrix(c(0,0.88,0.06,0.06,0,0.75,0.13,0.12,0,0,0.5,0.5,1,0,0,0),nrow=4,byrow=TRUE)
+
+Machine = new("markovchain",transitionMatrix=M,states=c("0","1","2","3"),name="Machine Process")
+steadyStates(Machine)
+rPath = function(){
+  x = character(11) # We want to simulate 10 days
+  x[1]= "0" # we always want to start with a new machine
+  for (i in 2:11){
+    x[i] = sample(c("0","1","2","3"), size= 1, prob = Machine[x[i-1],])
+  }
+  return(x)
+}
+
+rPathCost = function(){
+  x = character(11) # We want to simulate 10 days
+  x[1]= "0" # we always want to start with a new machine
+  Cost = c(0,1000,3000,6000) #Costs per state
+  names(Cost) = c("0","1","2","3") #Label the cost vector
+  y = 0
+  for (i in 2:11){
+    x[i] = sample(c("0","1","2","3"), size= 1, prob = Machine[x[i-1],])
+    y = y + Cost[x[i]]
+  }
+  return(y) # Returns the sum of the costs from visiting each of the 10 states
+}
+
+Y = replicate(1000, rPathCost())
+# estimate the average total cost in 10 days 
+mean(Y)
+# what is an estimate of the probability that total cost will be >10000?
+sum(Y>10000)/1000
+LL = mean(Y)-1.96*sd(Y)/sqrt(1000)
+UL = mean(Y)+1.96*sd(Y)/sqrt(1000)
+# a 95% confidence for the true mean is from LL to UL
+hist(Y)
