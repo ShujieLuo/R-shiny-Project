@@ -1,0 +1,20 @@
+> library(readxl)
+> MexRest <- read_excel("Desktop/OPIM5504/19fall/MexRest.xlsx")
+> View(MexRest)                                                                                                    
+> d = MexRest$`Menu Item`
+> MM = prop.table(table(d[1:999],d[2:1000]),1)
+> MM
+   
+             A          B          C          D
+  A 0.40145985 0.41605839 0.08029197 0.10218978
+  B 0.08843537 0.38775510 0.31632653 0.20748299
+  C 0.11475410 0.21967213 0.35737705 0.30819672
+  D 0.07604563 0.21292776 0.34980989 0.36121673
+> Restaurant = new("markovchain",transitionMatrix = as.matrix(MM),states=c("A","B","C","D"))
+Error in validObject(.Object) : 
+  invalid class “markovchain” object: invalid object for slot "transitionMatrix" in class "markovchain": got class "table", should be or extend class "matrix"
+> class(MM)="matrix"
+> Restaurant = new("markovchain",transitionMatrix = as.matrix(MM),states=c("A","B","C","D"))
+> steadyStates(Restaurant)
+             A         B         C         D
+[1,] 0.1356702 0.2939365 0.3057157 0.2646775
