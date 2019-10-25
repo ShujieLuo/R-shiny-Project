@@ -1,0 +1,54 @@
+M = matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1,0.5,0.5,0,0,0.5,0.5,0,0),nrow=4,byrow=TRUE)
+
+Machine = new("markovchain",transitionMatrix=M,states=c("DConly","CNonly","Both","None"),name="Machine Process")
+steadyStates(Machine)
+rPath = function(){
+  x = character(13) # We want to simulate 10 days
+  x[1]= "None" 
+  for (i in 2:13){
+    x[i] = sample(c("DConly","CNonly","Both","None"), size= 1, prob = Machine[x[i-1],])
+  }
+  return(x)
+}
+plot(Machine)
+
+CreateProcess = function(p){
+  M = matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1,p,(1-p),0,0,p,(1-p),0,0),nrow=4,byrow=TRUE)
+  return(new("markovchain",transitionMatrix = M, states=c("DConly","CNonly","Both","None"),name="Machine Process"))
+}
+
+rPathRevenue = function(n,r){
+  x = character(n+1) 
+  x[1]= "None" 
+  Revenue=c(r,r,2*r,0)
+  names(Revenue) = c("DConly","CNonly","Both","None") #Label the cost vector
+  y = 0
+  for (i in 2:n+1){
+    x[i] = sample(c("DConly","CNonly","Both","None"), size= 1, prob = Machine[x[i-1],])
+    y = y + Revenue[x[i]]
+  }
+  return(y)
+}
+
+ui = fluidPage(
+  sliderInput("r","Enter r", min = 0.1, max = 5, value = 3, step =0.01 ),
+  sliderInput("p","Enter p", min = 0.01, max = 0.99,value=0.3, step = 0.01),
+  sliderInput("n","Enter number of weeks", min = 2,value=4, max = 100),
+  plotOutput("BarChart"),
+  textOutput("AR"),
+  textOutput("SDR")
+)
+
+server = function(input, output){
+  Y = reactive({
+    CreateProcess(input$p)
+  })
+  X = reactive({
+    replicate(1000, rPathRevenue(input$n,input$r))
+  })
+  output$BarChart = renderPlot({barplot(steadyStates(Y()))})
+  output$AR=renderText({paste("The average revenue per customer", sum(X())/1000)})
+  output$SDR=renderText({paste("The standard deviation of revenue per customer", sd(X()))})
+}
+
+shinyApp(ui,server)
