@@ -1,0 +1,16 @@
+x=MexRest$`Menu Item`[1:999]
+y=MexRest$`Menu Item`[2:1000]
+M=prop.table(table(x,y),1)
+class(M)="matrix"
+MC=new("markovchain",transitionMatrix=as.matrix(M),name="Menu Choices")
+ss = steadyStates(MC)
+observed.freq = prop.table(table(MexRest$`Menu Item`))
+E = as.numeric(1000*ss)
+O = as.numeric(observed.freq*1000)
+CS = sum(((O-E)^2)/E)
+p.value=1 - pchisq(CS,df=4)
+# we want to see if the data provide us a real markov chain 
+> p.value
+[1] 0.9999663
+#  because the p-value is greater than 5%, we failed to reject the null hypothesis, 
+# so that the Markov Chain model could be a good fit.
