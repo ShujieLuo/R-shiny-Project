@@ -1,0 +1,19 @@
+> x = salary$Salary
+> sample(x,size = 1064, replace = TRUE)
+> median(sample(x,size = 1064,replace = TRUE))
+[1] 56000
+> medians = replicate(10000,median(sample(x,size = 1064,replace = TRUE)))
+> # estimate probability that a sample median is greater than 5500
+> sum(medians>55000)/10000
+[1] 0.9997
+> sum(medians>56000)/10000
+[1] 0.4228
+> LL = quantile(medians,probs = 0.05)
+> UP = quantile(medians,probs = 0.95)
+> LL
+   5% 
+56000 
+> UP
+  95% 
+57000 
+> # a 90% confidence interval for the true median in the population is from $56,000 to $57,000
