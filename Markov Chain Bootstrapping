@@ -1,0 +1,18 @@
+path.sim = function(){
+  x=numeric(1000)
+  x[1]="A"
+  for (i in 2:1000){
+    x[i]=sample(c("A","B","C","D"), size=1, replace=TRUE, prob=MC[x[i-1],])
+  }
+  sim.freq=as.vector(prop.table(table(x)))
+  sim.error=sum(abs(ss-sim.freq))/4
+  return(sim.error)
+}
+
+errors = replicate(10000,path.sim())
+hist(errors)
+observed.freq = prop.table(table(MexRest$`Menu Item`))
+observed.error = sum(abs(as.numeric(ss)-as.numeric(observed.freq)))/4
+p.value = sum(errors>observed.error)/10000
+# the estimated p-value is larger than 5%, so that we fail to reject the null hypothesis, there is no reason to
+# reject the Markov chain model.
