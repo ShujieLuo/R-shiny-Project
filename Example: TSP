@@ -1,0 +1,26 @@
+M=as.matrix.data.frame(TSPData)
+TourCost=function(x){
+  s=0
+  n=length(x)
+  for(i in 1:(n-1)){
+    s=s+M[x[i],x[i+1]]
+  }
+  s=s+M[x[n],x[1]]
+  return(s)
+}
+
+TourCost(c(2,3,5,7,8,1,4,6))
+
+z=list(NULL)
+tc=numeric(1000)
+for (i in 1:1000){
+	z[[i]]=sample(seq(1,8),size=8,replace=FALSE)
+	tc[i]=TourCost(z[[i]])
+}
+min(tc)
+z[[which.min(tc)]]
+
+> min(tc)
+[1] 209
+> z[[which.min(tc)]]
+[1] 6 5 3 2 7 8 1 4
