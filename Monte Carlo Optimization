@@ -1,0 +1,35 @@
+f=function(x,y){
+return(exp(-(x^2+y^2))+2*exp(-((x-1.7)^2+(y-1.7)^2)))
+}
+x=runif(1000,min=-2,max=2)
+y=runif(1000,min=-2,max=2)
+z=f(x,y)
+max(z)
+x[which.max(z)]
+y[which.max(z)]
+
+Myoptimize = function(n){
+  c=0
+  oldmax = 0
+  repeat{
+    x=runif(1000,min=-2,max=2)
+    y=runif(1000,min=-2,max=2)
+    z=f(x,y)
+    newmax = max(z)
+    x[which.max(z)]
+    y[which.max(z)]
+    if (newmax>oldmax){
+      oldmax = newmax
+      c = 0
+    }
+    else {
+      c = c+1
+      if (c=n){
+        break
+      }
+    }
+  }
+  return(oldmax)
+}
+
+Myoptimize(4)
