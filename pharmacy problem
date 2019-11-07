@@ -1,0 +1,107 @@
+> library(readxl)
+> pharmacies <- read_excel("Desktop/OPIM5504/19fall/pharmacies.xlsx")
+> View(pharmacies)                                                                                                 
+> Y=pharmacies$`Average Revenue ($/hour)`
+> X=pharmacies$`Operation Hours`
+> reg = lm(Y~X)
+> summary(reg)
+
+Call:
+lm(formula = Y ~ X)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-20.568 -11.379   3.010   9.358  24.015 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 97.80075    0.51900  188.44   <2e-16 ***
+X           -0.22241    0.00594  -37.44   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 11.69 on 2118 degrees of freedom
+Multiple R-squared:  0.3983,	Adjusted R-squared:  0.398 
+F-statistic:  1402 on 1 and 2118 DF,  p-value: < 2.2e-16
+
+> log.Y = log(Y)
+> log.X = log(X)
+> reg2 = lm(log.Y~log.X)
+> summary(reg2)
+
+Call:
+lm(formula = log.Y ~ log.X)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.24031 -0.11111  0.01655  0.09487  0.23907 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  5.589089   0.023498  237.85   <2e-16 ***
+log.X       -0.288637   0.005551  -51.99   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.1233 on 2118 degrees of freedom
+Multiple R-squared:  0.5607,	Adjusted R-squared:  0.5605 
+F-statistic:  2703 on 1 and 2118 DF,  p-value: < 2.2e-16
+
+
+MAE = function(y,y.hat){
+  return(mean(abs(y-y.hat)))
+}
+
+
+> Y1.hat = coef(reg)[1]+coef(reg)[2]*X
+> MAE(Y,Y1.hat)
+[1] 10.52347
+
+> Y2.hat = exp(coef(reg2)[1])*(X^coef(reg2)[2])
+> MAE(Y,Y2.hat)
+[1] 8.364662
+
+> c = runif(1000, min = 0, max = 220)
+> e = runif(1000, min = 0, max = 220)
+> f = runif(1000, min = 0, max = 220)
+> d = runif(1000, min = -1, max = 1)
+> D = pharmacies$`Operation Days`
+> z = numeric(1000)
+> for (k in 1:1000){
++   Y3.hat = ifelse(D == 5, c[k]*X^d[k] +e[k], ifelse(D == 6, c[k]*X^d[k]+f[k], c[k]*X^d[k]))
++   z[k] = MAE(Y,Y3.hat)
++ }
+> min(z)
+[1] 9.361772
+> c[which.min(z)]
+[1] 172.3339
+> e[which.min(z)]
+[1] 0.3567921
+> f[which.min(z)]
+[1] 3.340242
+> d[which.min(z)]
+[1] -0.1941082
+
+
+
+repeat{
+  c = runif(1000, min = 0, max = 220)
+  e = runif(1000, min = 0, max = 220)
+  f = runif(1000, min = 0, max = 220)
+  d = runif(1000, min = -1, max = 1)
+  D = pharmacies$`Operation Days`
+  z = numeric(1000)
+  for (k in 1:1000){
+    Y3.hat = ifelse(D == 5, c[k]*X^d[k] +e[k], ifelse(D == 6, c[k]*X^d[k]+f[k], c[k]*X^d[k]))
+    z[k] = MAE(Y,Y3.hat)
+  }
+  print(min(z))
+  if (min(z)<9){
+    print(c[which.min(z)])
+    print(e[which.min(z)])
+    print(f[which.min(z)])
+    print(d[which.min(z)])
+    break
+  }
+}
+
