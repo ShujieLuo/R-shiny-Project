@@ -1,0 +1,28 @@
+library(readxl)
+Concert <- read_excel("Desktop/OPIM5504/19fall/Concert.xlsx")
+View(Concert)  
+BlockDist=function(a,b){
+  return(sum(abs(a-b)))
+}
+M=as.matrix.data.frame(Concert[,c(2,3)])
+AveDist=function(fs){
+  d=numeric(12)
+  for (i in 1:12){
+    d[i]=BlockDist(fs[1:2],M[i,])
+  }
+  s=numeric(12)
+  s[fs[3:6]]=1
+  return(sum(d*s)/4)
+}
+
+z=numeric(1000)
+w=list(NULL)
+for (i in 1:1000){
+cl=sample(seq(0,19),size=2,replace=TRUE)
+sl=sample(seq(1:12),size=4,replace=FALSE)
+z[i]=AveDist(c(cl,sl))
+w[[i]]=c(cl,sl)
+}
+min(z)
+w[[which.min(z)]]
+
