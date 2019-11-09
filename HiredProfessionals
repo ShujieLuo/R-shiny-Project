@@ -1,0 +1,92 @@
+#a-----------------------------
+ 
+library(readxl)
+HiredProfessionals <- read_excel("D:/All my lecture/Uconn Course/OPIM5504/19fall/ASSN/HiredProfessionals(2).xlsx")
+x=HiredProfessionals$`Hired DA Professionals`[1:104]
+y=HiredProfessionals$`Hired DA Professionals`[2:105]
+M=prop.table(table(x,y),1)
+class(M)="matrix"
+hp = new("markovchain",transitionMatrix=as.matrix(M),states=colnames(M),name='HiredProfessionals')
+hp
+#b-----------------------------
+ss = steadyStates(hp)
+observed.freq = prop.table(table(HiredProfessionals$`Hired DA Professionals`))
+samplesize = 105
+E = as.numeric(samplesize*ss)
+O = as.numeric(observed.freq*samplesize)
+CS = sum(((O-E)^2)/E)
+p.value=1 - pchisq(CS,df=20)
+p.value
+#p.value = 0, because the estimate p-value is less than 5%,  so that we reject the null hypothesis,
+#We reject Markov Chain model.
+
+#c-------------------------------
+library(readxl)
+tm <- read_excel("D:/All my lecture/Uconn Course/OPIM5504/19fall/ASSN/HiredProfessionals(2).xlsx", 
+                 sheet = "Target Matrix", col_types = c("skip", 
+                                                        "numeric", "numeric", "numeric", 
+                                                        "numeric", "numeric", "numeric", 
+                                                        "numeric", "numeric", "numeric", 
+                                                        "numeric", "numeric", "numeric", 
+                                                        "numeric", "numeric", "numeric", 
+                                                        "numeric", "numeric", "numeric", 
+                                                        "numeric", "numeric", "numeric"))
+TM=as.matrix(sapply(TargetMatrix, as.numeric))  
+hp2 = new("markovchain",transitionMatrix=as.matrix(TM),name='HiredProfessionals2')
+ss2 = steadyStates(hp2)
+E2 = as.numeric(samplesize*ss2)
+O2 = as.numeric(observed.freq*samplesize)
+CS2 = sum(((O2-E2)^2)/E2)
+p.value2=1 - pchisq(CS2,df=20)
+p.value2
+# p.value2 = 0.1658,
+# the estimated p-value is larger than 5%, so that we fail to reject the null hypothesis, there is no reason # to reject the Markov chain model.
+
+#d------------------------------
+rProfit = function(W,F){
+  x = character(14)
+  x[1] = "0"
+  
+  for (i in 2:14){
+    x[i] = sample(c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"),size = 1,replace=TRUE, prob = hp2[x[i-1],])
+  }
+  y=0
+  for (i in 1:13){
+    if (as.numeric(x[i]) >= 2){
+      y= y + as.numeric(x[i])*W - F 
+    }
+    else {
+      y = y + as.numeric(x[i])*W
+    }
+  }
+  return(y)
+}
+#rProfit = function(W,F){
+#  x = character(14)
+#  x[1] = "0"
+#  y=0
+#  for (i in 2:14){
+#     x[i] = #sample(c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"#),size = 1,replace=TRUE, prob = hp2[x[i-1],])
+#    if (x[i] >= 2){
+#      y= y + as.numeric(x[i])*W - F 
+#    }
+#    else {
+#      y = y + as.numeric(x[i])*W
+#    }
+#  }
+#  return(y)
+#}
+
+library(shiny)
+ui = fluidPage(
+  sliderInput("W","Dollars received for each first-time hired professional in a given week",min = 10, max = 50, value = 30, step=1),
+  sliderInput("F","Fixed Cost",min = 0, max = 100, value = 50, step=1),
+  textOutput("CI")
+)
+server=function(input, output, session){
+  y = reactive({replicate(1000,rProfit(input$W,input$F))})
+  LL = reactive({mean(y()) - 1.96*sd(y())/sqrt(1000)})
+  UL = reactive({mean(y()) + 1.96*sd(y())/sqrt(1000)})
+  output$CI = renderText({paste0("95% confidence interval for the true average profit is from ", LL()," to ",UL())})
+}
+shinyApp(ui, server)
