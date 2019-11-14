@@ -1,0 +1,59 @@
+f = function(x)  (x^2+x)*cos(x)
+lbound = -10
+ubound = 10
+curve(f, from = lbound, to = ubound, n = 1000)
+MyGA = ga(type = "real-valued", fitness = f, lower = lbound, upper = ubound)
+MyGA = ga(type = "real-valued", fitness = f, min = lbound, max = ubound)
+summary(MyGA)
+MyGA@solution
+MyGA@fitnessValue
+f(MyGA@solution)
+
+
+ff=function(x){
+  return(sum((x-c(1.5,-3,2.6))^2))
+}
+
+gg=function(x){
+  return(1/(ff(x)+1))
+}
+
+MyGA3 = ga(type = "real-valued", fitness = gg, lower = c(-10,-10,-10), upper = c(10,10,10))
+
+summary(MyGA3)
+
+M=as.matrix.data.frame(TSPData)
+TourCost=function(x){
+  s=0
+  n=length(x)
+  for(i in 1:(n-1)){
+    s=s+M[x[i],x[i+1]]
+  }
+  s=s+M[x[n],x[1]]
+  return(s)
+}
+
+g = function(x){
+  return(1/(TourCost(x) + 1))
+}
+
+TSPGA = ga(type = "permutation", fitness = g, lower = rep(1,8), upper = rep(8,8))
+
+summary(TSPGA)
+
+TourCost(TSPGA@solution[1,])
+# the final result is 209.
+
+PT=c(6,1,2,5,9,8,12,3,9,7)
+DD=c(17,5,25,15,20,8,44,24,50,20)
+tardiness=function(x){
+  return(sum(ifelse(cumsum(PT[x])-DD[x] > 0,cumsum(PT[x])-DD[x],0)))
+}
+
+g = function(x){
+  return(1/(tardiness(x) + 1))
+}
+
+TARDINESSGA = ga(type = "permutation", fitness = g, lower = rep(1,10), upper = rep(10,10), maxiter = 500)
+summary(TARDINESSGA)
+tardiness(TARDINESSGA@solution)
