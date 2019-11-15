@@ -1,0 +1,37 @@
+# adaptive method
+y=Weedwacker$`Nbr. of Gas Trimmers`
+x=seq(1,20)
+x2=x^2
+reg1=lm(y~x)
+reg2=lm(y~x+x^2)
+reg3=lm(y~x2)
+x.quart=Weedwacker$Quarter
+reg4=lm(y~x+x2+x.quart)
+reg5=lm(y~x2+x.quart)
+plot(x,y)
+par(new=TRUE)
+plot(x,fitted(reg5),type="l")
+
+mse=function(y,yy){
+  return(mean((y-yy)^2))
+}
+
+update.mse = function(old.mse, old.n, y.new, yy.new){
+  return((old.n/(old.n + 1))*old.mse+(1/(old.n + 1))*(y.new-yy.new)^2)
+}
+
+old.mse = mse(y,fitted(reg5))
+new.mse = update.mse(old.mse,20,27000,26853)
+new.mse
+# because the new mse is smaller than the old mse, we keep our regression model.
+new.mse = update.mse(old.mse,20,25000,26853)
+new.mse/old.mse
+#[1] 1.261459
+# because the new mse is 26% larger than the old mse, we need to revise the model. 
+
+ y = c(y,25000)
+ x2 = c(x2,21^2)
+ x.quart = c(x.quart, "First")
+ reg5=lm(y~x2+x.quart)
+ 
+ 
