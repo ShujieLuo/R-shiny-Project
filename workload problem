@@ -1,0 +1,78 @@
+DM=Workloads$'Documents to Mail'
+
+workload = function(n){        
+  x=numeric(16)
+  for (i in 1:16){     
+    x[i]=sample(seq(1:n), size = 1, replace = TRUE)   
+  }   
+  x=round(x, digits = 0)
+  y=numeric(n)
+  y=c(rep(0,n))
+  for (j in 1:n){
+    for (k in 1:16){
+      if (x[k] == j){
+        y[j] = y[j] + DM[k]
+      } 
+      else{
+        y[j] = y[j]
+      }
+    }
+  } 
+  solution = list(x,max(y))
+  return(solution)
+}
+
+z=1000000
+s=numeric(16)
+
+repeat{
+  for (t in 1:1000){
+    if (z>(as.numeric(workload(6)[2]))){
+      z=as.numeric(workload(6)[2])
+    } else {
+      z=z
+    }
+    s=workload(6)[1]
+  }
+  if (z<=390000){
+    print(s)
+    print(z)
+    break
+  }
+}
+
+library(shiny)
+ui = fluidPage(
+  sliderInput("n","the number of weeks",min=4,max=12,value=6,step=1),
+  sliderInput("W","target workload per week",min=100000,max=1000000,value=390000,step=10000),
+  textOutput("mes")
+)
+server=function(input, output, session){
+  output$mes = renderText({
+    wl = reactive(workload(input$n))
+    z=1000000
+    s=numeric(16)
+    i=0
+    repeat{
+      i=i+1
+      for (t in 1:1000){
+        if (z>(as.numeric(workload(input$n)[2]))){
+          z=as.numeric(workload(input$n)[2])
+        } else {
+          z=z
+        }
+        s=workload(input$n)[1]
+      }
+      if (z<=input$W){
+        break
+      }
+      if (i>9){
+        break
+      }
+    }
+    paste0("solution: ", s," workload: ", z)
+  })
+}
+shinyApp(ui, server)
+
+
