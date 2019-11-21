@@ -1,0 +1,175 @@
+mse=function(y,yy){
+  return(mean((y-yy)^2))
+}
+
+update.mse = function(old.mse, old.n, y.new, yy.new){
+  return((old.n/(old.n + 1))*old.mse+(1/(old.n + 1))*(y.new-yy.new)^2)
+}
+
+current.mse=mse(y,fitted(reg1))
+current.n=12
+current.sales=y
+current.periods=seq(1,12)
+mytol = 0.1
+ui = fluidPage(
+  titlePanel("Battery Sales"),
+  hr(),
+  hr(),
+  sliderInput("MonthSales",label="Select Monthly Sales",min=0,max=100,value=20,step=1),
+  actionButton(inputId = "mybutton1",label="Update"),
+  actionButton(inputId = "mybutton2",label="Predict"),
+  hr(),
+  verbatimTextOutput("myresults1")
+)
+server = function(input, output) {
+  observeEvent(input$mybutton1,{
+    output$myresults2 = renderText({""})
+    y.hat=coef(reg1)[1]+coef(reg1)[2]*(current.n + 1)
+    new.mse=update.mse(current.mse,current.n,input$MonthSales,y.hat)
+    current.n <<- current.n + 1
+    current.sales <<- c(current.sales,input$MonthSales)
+    current.periods <<- seq(1,current.n)
+    if (new.mse/current.mse > mytol + 1){
+      output$myresults1 = renderText({
+        paste0("Input #", current.n, " MSE ratio exceeds tolerance: We need to update the model!")
+      })
+      reg1 <<- lm(current.sales~current.periods)
+      current.mse <<- mse(current.sales,fitted(reg1))
+    }
+    else{
+      output$myresults1 = renderText({
+        paste0("Input #", current.n, " MSE ratio is within tolerance: We keep the model!")
+      })
+      current.mse <<- new.mse
+    }
+  })
+}
+shinyApp(ui, server)
+
+# 
+y = BatterySales$`Battery Sales`
+x = seq(1,12)
+reg5 = lm(y~x)
+
+current.mse=mse(y,fitted(reg5))
+current.n=12
+current.sales=y
+current.periods=seq(1,12)
+LB = -qnorm(0.975)*sqrt(current.mse)
+UB = qnorm(0.975)*sqrt(current.mse)
+ui = fluidPage(
+  titlePanel("Battery Sales"),
+  hr(),
+  hr(),
+  sliderInput("MonthSales",label="Select Monthly Sales",min=0,max=100,value=20,step=1),
+  actionButton(inputId = "mybutton",label="Update"),
+  hr(),
+  verbatimTextOutput("myresults1")
+)
+server = function(input, output) {
+  observeEvent(input$mybutton,{
+    y.hat=coef(reg5)[1]+coef(reg5)[2]*(current.n + 1)
+    current.n <<- current.n + 1
+    current.sales <<- c(current.sales,input$MonthSales)
+    current.periods <<- seq(1,current.n)
+    e = input$MonthSales - y.hat
+    if ((e>UB)||(e<LB)){
+      output$myresults1 = renderText({
+        paste0("Input #", current.n, " Error outside tolerance interval: We need to update the model!")
+      })
+      reg5 <<- lm(current.sales~current.periods)
+      current.mse <<- mse(current.sales,fitted(reg5))
+      LB <<- -qnorm(0.975)*sqrt(current.mse)
+      UB <<- qnorm(0.975)*sqrt(current.mse)
+    }
+    else{
+      output$myresults1 = renderText({
+        paste0("Input #", current.n, " MSE ratio is within tolerance: We keep the model!")
+      })
+    }
+  })
+}
+shinyApp(ui, server)
+
+#web scraping
+install.packages("XML")
+library(XML)
+uconn.url="https://uconn.edu/"
+uconn.source=readLines(uconn.url,encoding="UTF-8")
+View(uconn.source)
+uconn.parsed=htmlParse(uconn.source,encoding="UTF-8")
+getHTMLLinks(uconn.source)
+getHTMLExternalFiles(uconn.source)
+x=readHTMLList(uconn.source)
+x[19]
+y=unlist(x[19])
+y[1]
+
+
+myurl="https://flightaware.com/live/airport/KBDL"
+mysource=readLines(myurl,encoding = "UTF-8")
+mytables=readHTMLTable(mysource)
+arrivals=mytables[2]$`NULL`
+class(arrivals)
+View(arrivals)
+View(mytables[2]$`NULL`)
+arrivals = arrivals[c(-1,-2),-5]
+View(arrivals)
+
+Extract.Table = function(myurl){
+  mysource=readLines(myurl,encoding = "UTF-8")
+  mytables=readHTMLTable(mysource)
+  arrivals=mytables[2]$`NULL`
+  arrivals=arrivals[3:13,-5]
+  return(arrivals)
+}
+
+View(Extract.Table("https://flightaware.com/live/airport/KJFK"))
+
+ui = fluidPage(
+  tableOutput("mytable")
+)
+server = function(input, output, session) {
+  autoInvalidate <- reactiveTimer(30000)
+  output$mytable=renderTable({
+    autoInvalidate()
+    Extract.Table("https://flightaware.com/live/airport/KJFK")
+  })
+}
+shinyApp(ui, server)
+
+library(openxlsx)
+ui = fluidPage(
+  radioButtons("airport","Select Airport", c("BDL"="bdl","JFK"="jfk","LAX"="lax")),
+  plotOutput("myplot"),
+  tableOutput("mytable")
+)
+server = function(input, output, session) {
+  autoInvalidate <- reactiveTimer(1000)
+  arrivals=reactive({
+    airportname = switch(input$airport,
+                         bdl = "BDL",
+                         jfk = "JFK",
+                         lax = "LAX"
+                         
+    )
+    autoInvalidate()
+    Extract.Table(paste0("https://flightaware.com/live/airport/K",airportname))
+  })
+  output$mytable=renderTable({
+    autoInvalidate()
+    arrivals()
+  })
+  output$myplot=renderPlot({
+    df = read.xlsx("/Users/YH/Desktop/data.xlsx")
+    df = rbind(df,arrivals())
+    write.xlsx(arrivals(),"/Users/YH/Desktop/data.xlsx")
+    autoInvalidate()
+    barplot(prop.table(table(arrivals()$Type)))
+  })
+}
+shinyApp(ui, server)
+
+
+
+
